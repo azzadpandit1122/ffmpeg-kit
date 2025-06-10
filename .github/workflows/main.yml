@@ -41,12 +41,12 @@ jobs:
       - name: Install Android NDK
         uses: android-actions/setup-android@v3
         with:
-          ndk-version: '25.1.8937393'
+          ndk-version: '21.4.7075529'
 
       - name: Set ANDROID_NDK_HOME environment variable
-        run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.1.8937393" >> $GITHUB_ENV
+        run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
 
-      - name: Build FFmpegKit AAR (LTS + GPL + Debug)
+      - name: Build FFmpegKit AAR
         run: |
           cd ffmpeg-kit
           chmod +x android.sh
@@ -61,7 +61,7 @@ jobs:
           name: ffmpeg-kit.aar
           path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
 
-      - name: Upload Build Log on Failure
+      - name: Upload Build Logs on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
