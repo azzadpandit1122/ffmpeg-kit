@@ -44,7 +44,7 @@ jobs:
           echo "##[endgroup]"
 
       - name: Upload FFmpeg AAR as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-kit.aar
           path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
@@ -64,7 +64,7 @@ jobs:
           version: '11'
 
       - name: Download FFmpeg AAR
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ffmpeg-kit.aar
 
