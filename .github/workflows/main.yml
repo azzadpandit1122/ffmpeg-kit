@@ -41,6 +41,15 @@ jobs:
         with:
           ndk-version: '25.1.8937393'
 
+      - name: Set ANDROID_NDK_HOME environment variable
+        run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.1.8937393" >> $GITHUB_ENV
+
+      - name: Check environment variables
+        run: |
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+          env | grep ANDROID
+
       - name: Check disk space
         run: df -h
 
