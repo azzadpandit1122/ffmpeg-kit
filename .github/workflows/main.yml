@@ -1,13 +1,3 @@
-name: Build FFmpegKit AAR and Integrate into Android Project
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
 jobs:
   build_ffmpeg_aar:
     runs-on: ubuntu-latest
@@ -20,6 +10,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: ffmpeg-kit
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip zip python3 build-essential
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -29,44 +24,28 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          cmdline-tools-version: '10406996'  # Specify the desired version
+          cmdline-tools-version: '10406996'
+
+      - name: Install Android NDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '25.1.8937393'
+
+      - name: Check disk space
+        run: df -h
 
       - name: Build FFmpegKit AAR
         run: |
           cd ffmpeg-kit
-          ./android.sh
+          set -e
+          ./android.sh | tee build.log
+        shell: bash
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
 
       - name: Upload FFmpegKit AAR as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-kit.aar
           path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
-
-  integrate_aar_into_android_project:
-    needs: build_ffmpeg_aar
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Android Project
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: '10406996'  # Specify the desired version
-
-      - name: Download FFmpegKit AAR
-        uses: actions/download-artifact@v4
-        with:
-          name: ffmpeg-kit.aar
-
-      - name: Integrate FFmpegKit AAR into Android Project
-        run: |
-          cp ffmpeg-kit.aar app/libs/
-          ./gradlew build
