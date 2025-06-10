@@ -49,7 +49,7 @@ jobs:
         run: |
           cd ffmpeg-kit
           chmod +x android.sh
-          ./android.sh --lts --enable-gpl --full --debug --disable-fribidi > ../build.log 2>&1 || (cat ../build.log && exit 1)
+          ./android.sh --lts --enable-gpl --full --debug arm-v7a arm64-v8a x86 x86-64 --disable-fribidi > ../build.log 2>&1 || (cat ../build.log && exit 1)
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
