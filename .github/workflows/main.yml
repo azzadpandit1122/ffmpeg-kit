@@ -44,11 +44,11 @@ jobs:
       - name: Set ANDROID_NDK_HOME environment variable
         run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.1.8937393" >> $GITHUB_ENV
 
-      - name: Build FFmpegKit AAR
+      - name: Build FFmpegKit AAR (with full libraries)
         run: |
           cd ffmpeg-kit
           chmod +x android.sh
-          ./android.sh > ../build.log 2>&1 || (cat ../build.log && exit 1)
+          ./android.sh --full --api-level=24 --enable-gpl --lts --debug > ../build.log 2>&1 || (cat ../build.log && exit 1)
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
