@@ -45,31 +45,55 @@ jobs:
       - name: Set ANDROID_NDK_HOME environment variable
         run: echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/21.4.7075529" >> $GITHUB_ENV
 
-      - name: Build FFmpegKit AAR (FriBidi disabled)
+      # --- DEBUGGING STEP ADDED ---
+      - name: Debug FFmpegKit android.sh script options
         run: |
           cd ffmpeg-kit
           chmod +x android.sh
-          # CORRECTED LINE: Use --architectures flag for specifying ABIs
-          ./android.sh --lts --enable-gpl --full --debug --architectures arm-v7a,arm64-v8a,x86,x86-64 --disable-fribidi > ../build.log 2>&1 || (cat ../build.log && exit 1)
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          echo "Listing content of android.sh:"
+          ls -l android.sh
+          echo "Attempting to get help message from android.sh:"
+          # Try to get help message and redirect to log file
+          # We use || true to prevent the step from failing if --help itself has an unusual exit code
+          ./android.sh --help > ../android_sh_help.log 2>&1 || true
+          echo "Content of android_sh_help.log:"
+          cat ../android_sh_help.log
+        working-directory: ${{ github.workspace }} # Ensure we run from the root, then cd into ffmpeg-kit
+        continue-on-error: true # Allow this debug step to pass even if it fails
 
-      - name: Upload FFmpegKit AAR as Artifact
+      - name: Upload android.sh Help Log
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-kit.aar
-          path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
+          name: android_sh_help.log
+          path: android_sh_help.log
+        if: always() # Upload even if previous steps failed
 
-      - name: Upload Build Logs on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build.log
-          path: build.log
+      # --- COMMENTED OUT FOR DEBUGGING ---
+      # - name: Build FFmpegKit AAR (FriBidi disabled)
+      #   run: |
+      #     cd ffmpeg-kit
+      #     chmod +x android.sh
+      #     ./android.sh --lts --enable-gpl --full --debug --architectures arm-v7a,arm64-v8a,x86,x86-64 --disable-fribidi > ../build.log 2>&1 || (cat ../build.log && exit 1)
+      #   env:
+      #     ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+      #     ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      # - name: Upload FFmpegKit AAR as Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ffmpeg-kit.aar
+      #     path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
+
+      # - name: Upload Build Logs on Failure
+      #   if: failure()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: build.log
+      #     path: build.log
 
   integrate_aar_into_android_project:
-    needs: build_ffmpeg_aar
+    # Temporarily disable this job until build_ffmpeg_aar is fixed
+    # needs: build_ffmpeg_aar
     runs-on: ubuntu-latest
 
     steps:
@@ -91,9 +115,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ffmpeg-kit.aar
+        if: false # Disable for now as build_ffmpeg_aar might not produce it
 
       - name: Integrate FFmpegKit AAR into Android Project
         run: |
           mkdir -p app/libs
-          cp ffmpeg-kit.aar app/libs/
+          # cp ffmpeg-kit.aar app/libs/ # Comment out as AAR might not be downloaded
           ./gradlew build
+        if: false # Disable for now until build_ffmpeg_aar is fixed
