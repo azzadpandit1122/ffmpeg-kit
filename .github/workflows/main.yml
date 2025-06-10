@@ -1,4 +1,4 @@
-name: Build FFmpeg AAR and Android App
+name: Build FFmpegKit AAR and Integrate into Android Project
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout FFmpeg Kit Repository
+      - name: Checkout FFmpegKit Repository
         uses: actions/checkout@v3
         with:
           repository: arthenica/ffmpeg-kit
@@ -25,8 +25,8 @@ jobs:
           echo "##[group]Setting up Android SDK and NDK"
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk wget unzip
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-          unzip commandlinetools-linux-7583922_latest.zip -d $HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip commandlinetools-linux-10406996_latest.zip -d $HOME/cmdline-tools
           mkdir -p $HOME/Android/Sdk/cmdline-tools
           mv $HOME/cmdline-tools $HOME/Android/Sdk/cmdline-tools/latest
           yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --licenses
@@ -36,20 +36,20 @@ jobs:
           echo "ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/25.1.8937393" >> $GITHUB_ENV
           echo "##[endgroup]"
 
-      - name: Build FFmpeg AAR
+      - name: Build FFmpegKit AAR
         run: |
-          echo "##[group]Building FFmpeg AAR"
+          echo "##[group]Building FFmpegKit AAR"
           cd ffmpeg-kit
           ./android.sh
           echo "##[endgroup]"
 
-      - name: Upload FFmpeg AAR as Artifact
+      - name: Upload FFmpegKit AAR as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-kit.aar
           path: ffmpeg-kit/prebuilt/bundle-android-aar/ffmpeg-kit.aar
 
-  build_android_app:
+  integrate_aar_into_android_project:
     needs: build_ffmpeg_aar
     runs-on: ubuntu-latest
 
@@ -63,7 +63,7 @@ jobs:
           distribution: 'adoptopenjdk'
           version: '11'
 
-      - name: Download FFmpeg AAR
+      - name: Download FFmpegKit AAR
         uses: actions/download-artifact@v4
         with:
           name: ffmpeg-kit.aar
@@ -73,8 +73,8 @@ jobs:
           echo "##[group]Setting up Android SDK"
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk wget unzip
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-          unzip commandlinetools-linux-7583922_latest.zip -d $HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip commandlinetools-linux-10406996_latest.zip -d $HOME/cmdline-tools
           mkdir -p $HOME/Android/Sdk/cmdline-tools
           mv $HOME/cmdline-tools $HOME/Android/Sdk/cmdline-tools/latest
           yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --licenses
@@ -86,9 +86,9 @@ jobs:
       - name: Set up Gradle
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Build Android App
+      - name: Integrate FFmpegKit AAR into Android Project
         run: |
-          echo "##[group]Building Android App"
+          echo "##[group]Integrating FFmpegKit AAR into Android Project"
           cp ffmpeg-kit.aar app/libs/
           ./gradlew build
           echo "##[endgroup]"
